@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { authAPI } from '../services/api';
 import './Login.css';
 
-function Login() {
+function Login({ onLogin }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -14,6 +14,10 @@ function Login() {
     try {
       const response = await authAPI.login(email, password);
       localStorage.setItem('token', response.data.token);
+      // Notify parent component of login
+      if (onLogin) {
+        onLogin();
+      }
       navigate('/');
     } catch (err) {
       setError(err.response?.data?.error || 'Login failed');

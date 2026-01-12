@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"log"
 	"net/http"
@@ -17,16 +18,50 @@ import (
 )
 
 func main() {
-	// Database connection
-	db, err := sql.Open("mysql", "root:password@tcp(localhost:3306)/pollapp?parseTime=True")
+	// Database connection - read from environment variables or use defaults
+	dbUser := os.Getenv("DB_USER")
+	if dbUser == "" {
+		dbUser = "root"
+	}
+	
+	dbPassword := os.Getenv("DB_PASSWORD")
+	if dbPassword == "" {
+		dbPassword = "admin" // Change this to your MySQL password
+	}
+	
+	dbHost := os.Getenv("DB_HOST")
+	if dbHost == "" {
+		dbHost = "localhost:3306"
+	}
+	
+	dbName := os.Getenv("DB_NAME")
+	if dbName == "" {
+		dbName = "pollapp"
+	}
+	
+	dsn := dbUser + ":" + dbPassword + "@tcp(" + dbHost + ")/" + dbName + "?parseTime=True"
+	db, err := sql.Open("mysql", dsn)
 	if err != nil {
 		log.Fatal("Failed to open database:", err)
 	}
 	defer db.Close()
 
+	// Test database connection
+	if err := db.Ping(); err != nil {
+		log.Fatal("Failed to ping database:", err)
+	}
+	log.Println("Database connection successful")
+
 	// Create ent client
 	drv := entsql.OpenDB(dialect.MySQL, db)
 	client := handler.NewEntClient(drv)
+
+	// Run database migrations
+	ctx := context.Background()
+	if err := client.Schema.Create(ctx); err != nil {
+		log.Fatal("Failed to create schema:", err)
+	}
+	log.Println("Database schema created successfully")
 
 	// Initialize services
 	authService := service.NewAuthService(client)
@@ -39,18 +74,38 @@ func main() {
 	// Setup router
 	router := httprouter.New()
 
+	// CORS middleware
+	router.GlobalOPTIONS = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Access-Control-Request-Method") != "" {
+			header := w.Header()
+			header.Set("Access-Control-Allow-Origin", "*")
+			header.Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+			header.Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		}
+		w.WriteHeader(http.StatusNoContent)
+	})
+
+	// Add CORS headers to all responses
+	corsHandler := func(h httprouter.Handle) httprouter.Handle {
+		return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+			h(w, r, ps)
+		}
+	}
+
 	// Public routes
-	router.POST("/api/auth/register", authHandler.Register)
-	router.POST("/api/auth/login", authHandler.Login)
+	router.POST("/api/auth/register", corsHandler(authHandler.Register))
+	router.POST("/api/auth/login", corsHandler(authHandler.Login))
 
 	// Protected routes
-	router.POST("/api/polls", middleware.AuthMiddleware(authService, pollHandler.CreatePoll))
-	router.GET("/api/polls", pollHandler.ListPolls)
-	router.GET("/api/polls/:id", pollHandler.GetPoll)
-	router.PUT("/api/polls/:id", middleware.AuthMiddleware(authService, pollHandler.UpdatePoll))
-	router.DELETE("/api/polls/:id", middleware.AuthMiddleware(authService, pollHandler.DeletePoll))
-	router.POST("/api/polls/:id/upvote", middleware.AuthMiddleware(authService, pollHandler.Upvote))
-	router.POST("/api/polls/:id/downvote", middleware.AuthMiddleware(authService, pollHandler.Downvote))
+	router.POST("/api/polls", corsHandler(middleware.AuthMiddleware(authService, pollHandler.CreatePoll)))
+	router.GET("/api/polls", corsHandler(pollHandler.ListPolls))
+	router.GET("/api/polls/:id", corsHandler(pollHandler.GetPoll))
+	router.PUT("/api/polls/:id", corsHandler(middleware.AuthMiddleware(authService, pollHandler.UpdatePoll)))
+	router.DELETE("/api/polls/:id", corsHandler(middleware.AuthMiddleware(authService, pollHandler.DeletePoll)))
+	router.POST("/api/polls/:id/vote", corsHandler(middleware.AuthMiddleware(authService, pollHandler.Vote)))
 
 	port := os.Getenv("PORT")
 	if port == "" {

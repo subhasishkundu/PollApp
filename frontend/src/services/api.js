@@ -25,11 +25,11 @@ export const authAPI = {
 export const pollAPI = {
   list: () => api.get('/polls'),
   get: (id) => api.get(`/polls/${id}`),
-  create: (title, description) =>
-    api.post('/polls', { title, description }),
+  create: (title, description, options) =>
+    api.post('/polls', { title, description, options }),
   update: (id, title, description) =>
     api.put(`/polls/${id}`, { title, description }),
   delete: (id) => api.delete(`/polls/${id}`),
-  upvote: (id) => api.post(`/polls/${id}/upvote`),
-  downvote: (id) => api.post(`/polls/${id}/downvote`),
+  vote: (pollId, pollOptionId) =>
+    api.post(`/polls/${pollId}/vote`, { poll_option_id: pollOptionId }),
 };

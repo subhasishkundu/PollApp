@@ -5,8 +5,8 @@ import (
 	"errors"
 	"time"
 
-	"pollapp/backend/internal/ent"
-	"pollapp/backend/internal/ent/user"
+	"pollapp/backend/ent"
+	"pollapp/backend/ent/user"
 
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"

@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"entgo.io/ent"
+	"pollapp/backend/ent"
 	"entgo.io/ent/dialect/sql"
 )
 

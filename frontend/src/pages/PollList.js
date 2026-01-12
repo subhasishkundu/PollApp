@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { pollAPI } from '../services/api';
 import './PollList.css';
 
-function PollList() {
+function PollList({ onLogout }) {
   const [polls, setPolls] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -23,13 +23,10 @@ function PollList() {
     }
   };
 
-  const handleVote = async (pollId, isUpvote) => {
+  const handleVote = async (pollId, pollOptionId) => {
     try {
-      if (isUpvote) {
-        await pollAPI.upvote(pollId);
-      } else {
-        await pollAPI.downvote(pollId);
-      }
+      await pollAPI.vote(pollId, pollOptionId);
+      // Reload polls to get updated vote counts
       loadPolls();
     } catch (err) {
       console.error('Vote failed:', err);
@@ -38,6 +35,9 @@ function PollList() {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
+    if (onLogout) {
+      onLogout();
+    }
     navigate('/login');
   };
 
@@ -57,9 +57,24 @@ function PollList() {
           <div key={poll.id} className="poll-card">
             <h3>{poll.title}</h3>
             <p>{poll.description}</p>
-            <div className="vote-buttons">
-              <button onClick={() => handleVote(poll.id, true)}>👍 Upvote</button>
-              <button onClick={() => handleVote(poll.id, false)}>👎 Downvote</button>
+            <div className="poll-options">
+              {poll.options && poll.options.length > 0 ? (
+                poll.options.map((option) => (
+                  <div key={option.id} className="poll-option">
+                    <button
+                      className="option-button"
+                      onClick={() => handleVote(poll.id, option.id)}
+                    >
+                      {option.text}
+                    </button>
+                    <span className="vote-count">{option.vote_count || 0} votes</span>
+                  </div>
+                ))
+              ) : (
+                <div className="no-options-message">
+                  No options available. This poll was created before the options feature was added.
+                </div>
+              )}
             </div>
           </div>
         ))}

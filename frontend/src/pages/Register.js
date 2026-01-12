@@ -14,7 +14,8 @@ function Register() {
     e.preventDefault();
     try {
       await authAPI.register(username, email, password);
-      navigate('/login');
+      // Navigate to login page
+      window.location.href = '/login';
     } catch (err) {
       setError(err.response?.data?.error || 'Registration failed');
     }
