@@ -135,12 +135,8 @@ cd backend
    
    Run the schema creation script:
    ```bash
+   cd backend
    ./scripts/create-schema.sh
-   ```
-   
-   Or use the migration wrapper:
-   ```bash
-   ./scripts/migrate.sh
    ```
    
    The script will:
@@ -390,11 +386,6 @@ To create the database schema (run this first):
 ```bash
 cd backend
 ./scripts/create-schema.sh
-```
-
-Or use the migration wrapper:
-```bash
-./scripts/migrate.sh
 ```
 
 **Environment Variables:**

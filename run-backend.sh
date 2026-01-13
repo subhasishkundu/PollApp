@@ -21,15 +21,15 @@ go generate ./ent
 echo "Checking database schema..."
 if ! mysql -u root -padmin -e "USE pollapp; SELECT 1 FROM users LIMIT 1" 2>/dev/null; then
     echo "Warning: Database schema not found!"
-    echo "Please run the migration script first:"
-    echo "  ./scripts/migrate.sh"
+    echo "Please run the schema creation script first:"
+    echo "  ./scripts/create-schema.sh"
     echo ""
-    read -p "Do you want to run the migration now? (y/n): " -n 1 -r
+    read -p "Do you want to create the schema now? (y/n): " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
-        ./scripts/migrate.sh
+        ./scripts/create-schema.sh
     else
-        echo "Exiting. Please run migrations before starting the server."
+        echo "Exiting. Please create the database schema before starting the server."
         exit 1
     fi
 fi

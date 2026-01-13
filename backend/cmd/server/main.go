@@ -64,7 +64,7 @@ func main() {
 	}
 	
 	if len(missingTables) > 0 {
-		log.Fatalf("Missing required tables: %v. Please run the migration script: ./backend/scripts/migrate.sh", missingTables)
+		log.Fatalf("Missing required tables: %v. Please run the schema creation script: ./backend/scripts/create-schema.sh", missingTables)
 	}
 	log.Println("Database schema verified - all tables exist")
 
