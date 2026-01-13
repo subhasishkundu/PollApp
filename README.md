@@ -105,15 +105,21 @@ EXIT;
 
 4. **Create database schema:**
    
-   Run the migration script to create all tables:
+   Run the schema creation script:
+   ```bash
+   ./scripts/create-schema.sh
+   ```
+   
+   Or use the migration wrapper:
    ```bash
    ./scripts/migrate.sh
    ```
    
-   Or manually:
-   ```bash
-   mysql -u root -p pollapp < scripts/create-schema.sql
-   ```
+   The script will:
+   - Create the database if it doesn't exist
+   - Drop existing tables (if any) for clean setup
+   - Create all required tables with proper constraints
+   - Verify the tables were created successfully
 
 5. **Configure database connection:**
    
@@ -355,12 +361,18 @@ To create the database schema (run this first):
 
 ```bash
 cd backend
+./scripts/create-schema.sh
+```
+
+Or use the migration wrapper:
+```bash
 ./scripts/migrate.sh
 ```
 
-Or manually:
+**Environment Variables:**
+You can override database credentials:
 ```bash
-mysql -u root -p pollapp < backend/scripts/create-schema.sql
+DB_USER=root DB_PASSWORD=yourpass DB_NAME=pollapp ./scripts/create-schema.sh
 ```
 
 ### Reset Database
