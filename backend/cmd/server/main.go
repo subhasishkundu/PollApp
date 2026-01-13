@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"database/sql"
 	"log"
 	"net/http"
@@ -52,16 +51,26 @@ func main() {
 	}
 	log.Println("Database connection successful")
 
+	// Check if required tables exist
+	requiredTables := []string{"users", "polls", "poll_options", "votes"}
+	missingTables := []string{}
+	
+	for _, table := range requiredTables {
+		var count int
+		err := db.QueryRow("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = ? AND table_name = ?", dbName, table).Scan(&count)
+		if err != nil || count == 0 {
+			missingTables = append(missingTables, table)
+		}
+	}
+	
+	if len(missingTables) > 0 {
+		log.Fatalf("Missing required tables: %v. Please run the migration script: ./backend/scripts/migrate.sh", missingTables)
+	}
+	log.Println("Database schema verified - all tables exist")
+
 	// Create ent client
 	drv := entsql.OpenDB(dialect.MySQL, db)
 	client := handler.NewEntClient(drv)
-
-	// Run database migrations
-	ctx := context.Background()
-	if err := client.Schema.Create(ctx); err != nil {
-		log.Fatal("Failed to create schema:", err)
-	}
-	log.Println("Database schema created successfully")
 
 	// Initialize services
 	authService := service.NewAuthService(client)

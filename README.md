@@ -103,7 +103,19 @@ EXIT;
    go generate ./ent
    ```
 
-4. **Configure database connection:**
+4. **Create database schema:**
+   
+   Run the migration script to create all tables:
+   ```bash
+   ./scripts/migrate.sh
+   ```
+   
+   Or manually:
+   ```bash
+   mysql -u root -p pollapp < scripts/create-schema.sql
+   ```
+
+5. **Configure database connection:**
    
    Update the database credentials in `cmd/server/main.go` (lines 22-39) or set environment variables:
    ```bash
@@ -113,7 +125,7 @@ EXIT;
    export DB_NAME=pollapp
    ```
 
-5. **Start the server:**
+6. **Start the server:**
    ```bash
    go run cmd/server/main.go
    ```
@@ -123,7 +135,7 @@ EXIT;
    ./run-backend.sh
    ```
 
-   The server will start on `http://localhost:8080` and automatically create database tables.
+   The server will start on `http://localhost:8080` and verify that all required tables exist.
 
 ### 3. Frontend Setup
 
@@ -337,9 +349,23 @@ Authorization: Bearer <token>
 
 ## Database Management
 
+### Create Schema
+
+To create the database schema (run this first):
+
+```bash
+cd backend
+./scripts/migrate.sh
+```
+
+Or manually:
+```bash
+mysql -u root -p pollapp < backend/scripts/create-schema.sql
+```
+
 ### Reset Database
 
-To clear all data and start fresh:
+To clear all data and start fresh (keeps tables, removes data):
 
 ```bash
 ./reset-database.sh
@@ -350,7 +376,9 @@ Or manually:
 mysql -u root -padmin pollapp < backend/scripts/reset-db.sql
 ```
 
-**Note:** After resetting, you'll need to log in again as all users are deleted.
+**Note:** 
+- After resetting, you'll need to log in again as all users are deleted.
+- If you need to recreate tables, run the migration script again.
 
 ## Environment Variables
 
