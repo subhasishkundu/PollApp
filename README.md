@@ -59,6 +59,8 @@ PollApp/
 │   │   │   └── api.js            # API client
 │   │   └── App.js                # Main app component
 │   └── package.json              # Node dependencies
+├── scripts/
+│   └── setup-mysql.sh            # Complete MySQL installation and setup script
 ├── reset-database.sh             # Database reset script
 ├── run-backend.sh                # Backend startup script
 ├── run-frontend.sh                # Frontend startup script
@@ -75,7 +77,26 @@ PollApp/
 
 ### 1. Database Setup
 
-Create the MySQL database:
+#### Option A: Automated Setup (RHEL/CentOS/Fedora)
+
+For a complete automated setup including MySQL installation:
+
+```bash
+sudo ./scripts/setup-mysql.sh
+```
+
+This script will:
+- Install MySQL Server using yum
+- Start and enable MySQL service
+- Configure root user with password "password"
+- Create the `pollapp` database
+- Create all required tables with proper constraints
+
+**Note:** This script requires root/sudo privileges and is designed for RHEL/CentOS/Fedora systems.
+
+#### Option B: Manual Setup
+
+If MySQL is already installed, create the database manually:
 
 ```bash
 mysql -u root -p
@@ -84,6 +105,13 @@ mysql -u root -p
 ```sql
 CREATE DATABASE pollapp;
 EXIT;
+```
+
+Then run the schema creation script:
+
+```bash
+cd backend
+./scripts/create-schema.sh
 ```
 
 ### 2. Backend Setup
